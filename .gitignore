@@ -9,6 +9,7 @@ build/
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
+.idea/workspace.xml
 .idea/libraries/
 *.iws
 *.iml
@@ -47,3 +48,6 @@ bin/
 /workspace.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+
+.env
+data/
