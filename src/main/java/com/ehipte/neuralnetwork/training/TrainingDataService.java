@@ -41,7 +41,7 @@ public class TrainingDataService {
     }
 
     public double[] generateCorrectAnswerInArrayFormat(int answer) {
-        double[] correctAnswer = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
+        double[] correctAnswer = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         correctAnswer[answer] = 0.99;
         return correctAnswer;
     }

@@ -25,7 +25,6 @@ public class NeuralNetwork {
         for (NeuralLayer layer : layers) {
             signals = layer.propagationSignal(signals);
         }
-
         double[] errors = calculateErrors(correctAnswer, signals);
         for (int i = layers.size() - 1; i >= 0; i--) {
             NeuralLayer currentLayer = layers.get(i);
@@ -39,6 +38,7 @@ public class NeuralNetwork {
 
         for (NeuralLayer layer : layers) {
             layer.updateWeights(learningRate);
+            layer.updateBiases(learningRate);
         }
     }
 
@@ -71,7 +71,7 @@ public class NeuralNetwork {
         }
         double[] errors = new double[correctAnswer.length];
         for (int i = 0; i < correctAnswer.length; i++) {
-            errors[i] = correctAnswer[i] - outputSignals[i];
+            errors[i] = outputSignals[i] - correctAnswer[i];
         }
         return errors;
     }

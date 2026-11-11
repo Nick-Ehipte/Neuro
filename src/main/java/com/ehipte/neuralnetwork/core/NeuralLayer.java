@@ -10,7 +10,7 @@ public class NeuralLayer {
     public NeuralLayer(int neuronsCount, int inputSize) {
         this.neurons = new Neuron[neuronsCount];
         for (int i = 0; i < neuronsCount; i++) {
-            neurons[i] = new Neuron(inputSize);
+            neurons[i] = new Neuron(inputSize, neuronsCount);
         }
     }
 
@@ -56,6 +56,12 @@ public class NeuralLayer {
     public void updateWeights(double learningRate) {
         for (Neuron neuron : neurons) {
             neuron.updateWeights(learningRate);
+        }
+    }
+
+    public void updateBiases(double learningRate) {
+        for (Neuron neuron : neurons) {
+            neuron.updateBias(learningRate);
         }
     }
 
