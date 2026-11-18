@@ -4,7 +4,7 @@ public class SoftmaxActivationFunction {
 
     public double[] activate(double[] input) {
         double[] outputs = new double[input.length];
-        double max = 0.0;
+        double max = Double.NEGATIVE_INFINITY;
         for (double v : input) {
             max = Math.max(v, max);
         }
@@ -13,7 +13,7 @@ public class SoftmaxActivationFunction {
             sumExpInputs += Math.exp(v - max);
         }
         for (int i = 0; i < input.length; i++) {
-            outputs[i] = Math.exp(input[i]) / sumExpInputs;
+            outputs[i] = Math.exp(input[i] - max) / sumExpInputs;
         }
         return outputs;
     }

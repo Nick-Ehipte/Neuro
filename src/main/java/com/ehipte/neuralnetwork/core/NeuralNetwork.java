@@ -8,7 +8,7 @@ import java.util.List;
 @Slf4j
 public class NeuralNetwork {
 
-    private List<NeuralLayer> layers = new ArrayList<>();
+    private final List<NeuralLayer> layers;
     private double learningRate;
 
     private NeuralNetwork(Builder builder) {
