@@ -58,7 +58,7 @@ public class MultiHeadAttention {
 
         private final List<SelfAttention> heads = new ArrayList<>();
 
-        public MultiHeadAttention.Builder addHeads(int headsCount, int numberOfInputEmbeddings, int inputEmbeddingSize, int dropoutRate) {
+        public MultiHeadAttention.Builder addHeads(int headsCount, int numberOfInputEmbeddings, int inputEmbeddingSize, double dropoutRate) {
             if (headsCount < 2) {
                 throw new IllegalArgumentException("В многоцелевом механизме внимания должно быть минимум 2 цели.");
             }

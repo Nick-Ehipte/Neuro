@@ -42,9 +42,9 @@ public class SelfAttention {
     /**
      * Коэффициент отсева. Используется при создании маски отсева.
      */
-    private final int dropoutRate;
+    private final double dropoutRate;
 
-    public SelfAttention(int numberOfInputEmbeddings, int inputEmbeddingSize, int outputVectorSize, int dropoutRate) {
+    public SelfAttention(int numberOfInputEmbeddings, int inputEmbeddingSize, int outputVectorSize, double dropoutRate) {
         this.softmaxFunction = new SoftmaxActivationFunction();
         this.weightInitializer = new XavierWeightsInitializer();
         this.numberOfInputEmbeddings = numberOfInputEmbeddings;
