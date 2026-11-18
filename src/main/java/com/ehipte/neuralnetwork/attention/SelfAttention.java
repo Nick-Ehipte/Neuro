@@ -69,9 +69,9 @@ public class SelfAttention {
         double[][] attentionScores = calculateAttentionScoreMatrix(queryVectors, keysVectors);
         attentionScores = scaleAttentionScores(attentionScores);
         double[][] normalizedAttentionWeights = applySoftmax(attentionScores);
-        double[][] hideMask = generateHideMask(numberOfInputEmbeddings, outputVectorSize);
+        double[][] hideMask = generateHideMask(numberOfInputEmbeddings);
         double[][] normalizedWeightsAfterHideMask = applyHideMaskAndNormalizeWeights(normalizedAttentionWeights, hideMask);
-        double[][] dropoutMask = generateDropoutMask(numberOfInputEmbeddings, outputVectorSize, dropoutRate);
+        double[][] dropoutMask = generateDropoutMask(numberOfInputEmbeddings, dropoutRate);
         double[][] attentionWeightsAfterDropoutMask = applyDropoutMaskAndScaleWeights(normalizedWeightsAfterHideMask, dropoutMask, dropoutRate);
         contextVectors = calculateContextVectors(valueVectors, attentionWeightsAfterDropoutMask);
 
@@ -132,15 +132,11 @@ public class SelfAttention {
      * @return матрицу показателей внимания
      */
     private double[][] calculateAttentionScoreMatrix(double[][] queryVectors, double[][] keysVectors) {
-        //точно ли размерность такая? может надо что-то другое?
-        double[][] attentionScoreMatrix = new double[numberOfInputEmbeddings][outputVectorSize];
+        double[][] attentionScoreMatrix = new double[numberOfInputEmbeddings][numberOfInputEmbeddings];
         for (int i = 0; i < queryVectors.length; i++) {
-            //точно ли размерность такая? может надо что-то другое?
-            double[] indexes = new double[outputVectorSize];
             for (int j = 0; j < keysVectors.length; j++) {
-                indexes[j] = calculateAttentionScore(queryVectors[i], keysVectors[j]);
+                attentionScoreMatrix[i][j] = calculateAttentionScore(queryVectors[i], keysVectors[j]);
             }
-            attentionScoreMatrix[i] = indexes;
         }
         return attentionScoreMatrix;
     }
@@ -206,7 +202,6 @@ public class SelfAttention {
     // можно не возвращать матрицу, а просто модифицировать входную матрицу весов,
     // но тогда надо, чтобы applySoftmax тоже не возвращал матрицу
     private double[][] applyHideMaskAndNormalizeWeights(double[][] attentionWeights, double[][] hideMask) {
-        double[][] normalizedWeights = new double[attentionWeights.length][attentionWeights[0].length];
         for (int i = 0; i < attentionWeights.length; i++) {
             for (int j = 0; j < attentionWeights[i].length; j++) {
                 if (hideMask[i][j] == Double.NEGATIVE_INFINITY) {
@@ -214,7 +209,7 @@ public class SelfAttention {
                 }
             }
         }
-        normalizedWeights = applySoftmax(attentionWeights);
+        double[][] normalizedWeights = applySoftmax(attentionWeights);
         return normalizedWeights;
     }
 
@@ -223,12 +218,11 @@ public class SelfAttention {
      * вектора в последовательности.
      *
      * @param numberOfInputEmbeddings размер входной последовательности векторов
-     * @param outputVectorSize        размер выходного вектора
      * @return маску сокрытия, где позиции выше диагонали матрицы принимают значение NEGATIVE_INFINITY,
      * позиции ниже остаются без изменений.
      */
-    private double[][] generateHideMask(int numberOfInputEmbeddings, int outputVectorSize) {
-        double[][] hideMask = new double[numberOfInputEmbeddings][outputVectorSize];
+    private double[][] generateHideMask(int numberOfInputEmbeddings) {
+        double[][] hideMask = new double[numberOfInputEmbeddings][numberOfInputEmbeddings];
         for (int i = 0; i < hideMask.length; i++) {
             for (int j = 0; j < hideMask[i].length; j++) {
                 if (i >= j) {
@@ -271,12 +265,11 @@ public class SelfAttention {
      * Генерирует маску отсева используемую для случайного отсева весов внимания
      *
      * @param numberOfInputEmbeddings размер входной последовательности векторов
-     * @param outputVectorSize        размер выходного вектора
      * @param dropoutRate             коэффициент отсева
      * @return маску отсева, где 0 - отсеиваемый позиция, 1 - позиция которая останется
      */
-    private double[][] generateDropoutMask(int numberOfInputEmbeddings, int outputVectorSize, double dropoutRate) {
-        double[][] dropoutMask = new double[numberOfInputEmbeddings][outputVectorSize];
+    private double[][] generateDropoutMask(int numberOfInputEmbeddings, double dropoutRate) {
+        double[][] dropoutMask = new double[numberOfInputEmbeddings][numberOfInputEmbeddings];
         Random random = new Random();
         for (int i = 0; i < dropoutMask.length; i++) {
             for (int j = 0; j < dropoutMask[i].length; j++) {
