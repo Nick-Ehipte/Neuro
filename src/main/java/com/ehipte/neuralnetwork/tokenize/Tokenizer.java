@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 /**
  * Класс осуществляющий токенизацию входящего текста.
  */
-public class TokenizerService {
+public class Tokenizer {
 
     private static final Pattern PATTERN = Pattern.compile("[\\p{L}\\p{N}]+|\\s+|[^\\p{L}\\p{N}\\s]");
 

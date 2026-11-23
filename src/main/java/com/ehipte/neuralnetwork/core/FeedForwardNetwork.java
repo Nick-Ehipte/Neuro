@@ -1,17 +1,15 @@
 package com.ehipte.neuralnetwork.core;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
-public class NeuralNetwork {
 
-    private final List<NeuralLayer> layers;
+public class FeedForwardNetwork {
+
+    private final List<LinearLayer> layers;
     private double learningRate;
 
-    private NeuralNetwork(Builder builder) {
+    private FeedForwardNetwork(Builder builder) {
         this.learningRate = builder.learningRate;
         this.layers = builder.layers;
     }
@@ -22,21 +20,21 @@ public class NeuralNetwork {
 
     public void trainOnce(double[] inputSignals, double[] correctAnswer) {
         double[] signals = inputSignals;
-        for (NeuralLayer layer : layers) {
+        for (LinearLayer layer : layers) {
             signals = layer.propagationSignal(signals);
         }
         double[] errors = calculateErrors(correctAnswer, signals);
         for (int i = layers.size() - 1; i >= 0; i--) {
-            NeuralLayer currentLayer = layers.get(i);
+            LinearLayer currentLayer = layers.get(i);
 
-            NeuralLayer nextLayer = i < layers.size() - 1
+            LinearLayer nextLayer = i < layers.size() - 1
                     ? layers.get(i + 1)
                     : null;
 
             errors = currentLayer.backpropagationError(errors, nextLayer);
         }
 
-        for (NeuralLayer layer : layers) {
+        for (LinearLayer layer : layers) {
             layer.updateWeights(learningRate);
             layer.updateBiases(learningRate);
         }
@@ -50,22 +48,15 @@ public class NeuralNetwork {
         }
     }
 
-    public int query(double[] inputSignals) {
-        double[] signals = inputSignals;
-        for (NeuralLayer layer : layers) {
+    public double[] forward(double[] inputSignals) {
+        double[] signals = inputSignals.clone();
+        for (LinearLayer layer : layers) {
             signals = layer.propagationSignal(signals);
         }
-        int resultIndex = 0;
-        for (int i = 0; i < signals.length; i++) {
-            if (signals[i] > signals[resultIndex]) {
-                resultIndex = i;
-            }
-        }
-        return resultIndex;
+        return signals;
     }
 
     private double[] calculateErrors(double[] correctAnswer, double[] outputSignals) {
-//        log.info("Массив корректных значений: {}, массив выходных значений нейросети: {}", correctAnswer, outputSignals);
         if (correctAnswer.length != outputSignals.length) {
             throw new IllegalStateException("Несовпадение размеров массива правильных ответов и массива выходных сигналов.");
         }
@@ -78,7 +69,7 @@ public class NeuralNetwork {
 
     public static class Builder {
 
-        private final List<NeuralLayer> layers = new ArrayList<>();
+        private final List<LinearLayer> layers = new ArrayList<>();
         private double learningRate = 0.01;
         private int previousLayerSize = 0;
 
@@ -91,7 +82,7 @@ public class NeuralNetwork {
                 throw new IllegalStateException("Входной слой должен быть первым");
             }
 
-            NeuralLayer layer = new NeuralLayer(neuronCount, 0);
+            LinearLayer layer = new LinearLayer(neuronCount, 0);
             layer.setFirstLayer(true);
             this.layers.add(layer);
             previousLayerSize = neuronCount;
@@ -102,7 +93,7 @@ public class NeuralNetwork {
             if (neuronCount <= 0) {
                 throw new IllegalArgumentException("Количество нейронов в слое должен быть больше 0");
             }
-            NeuralLayer layer = new NeuralLayer(neuronCount, previousLayerSize);
+            LinearLayer layer = new LinearLayer(neuronCount, previousLayerSize);
             this.layers.add(layer);
             previousLayerSize = neuronCount;
             return this;
@@ -116,7 +107,7 @@ public class NeuralNetwork {
                 throw new IllegalStateException("Сначала необходимо создать входной слой");
             }
 
-            NeuralLayer layer = new NeuralLayer(neuronCount, previousLayerSize);
+            LinearLayer layer = new LinearLayer(neuronCount, previousLayerSize);
             layer.setLastLayer(true);
             this.layers.add(layer);
             return this;
@@ -130,7 +121,7 @@ public class NeuralNetwork {
             return this;
         }
 
-        public NeuralNetwork build() {
+        public FeedForwardNetwork build() {
 
             if (layers.isEmpty() || layers.size() == 1) {
                 throw new IllegalArgumentException("Слоёв в нейросети должно быть больше 1");
@@ -144,7 +135,7 @@ public class NeuralNetwork {
                 throw new IllegalStateException("Последний слой нейросети должен быть выходным");
             }
 
-            return new NeuralNetwork(this);
+            return new FeedForwardNetwork(this);
         }
     }
 }

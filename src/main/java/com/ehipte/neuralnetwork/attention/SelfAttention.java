@@ -1,10 +1,9 @@
 package com.ehipte.neuralnetwork.attention;
 
 import com.ehipte.neuralnetwork.activation.SoftmaxActivationFunction;
+import com.ehipte.neuralnetwork.transformer.Dropout;
 import com.ehipte.neuralnetwork.weights.WeightInitializer;
 import com.ehipte.neuralnetwork.weights.XavierWeightsInitializer;
-
-import java.util.Random;
 
 /**
  * Класс реализующий механизм самовнимания
@@ -13,6 +12,7 @@ public class SelfAttention {
 
     private final SoftmaxActivationFunction softmaxFunction;
     private final WeightInitializer weightInitializer;
+    private final Dropout dropout;
 
     /**
      * Веса векторов ключей
@@ -39,17 +39,13 @@ public class SelfAttention {
      */
     private final int outputVectorSize;
 
-    /**
-     * Коэффициент отсева. Используется при создании маски отсева.
-     */
-    private final double dropoutRate;
-
     public SelfAttention(int numberOfInputEmbeddings, int inputEmbeddingSize, int outputVectorSize, double dropoutRate) {
         this.softmaxFunction = new SoftmaxActivationFunction();
         this.weightInitializer = new XavierWeightsInitializer();
+        this.dropout = new Dropout(dropoutRate);
         this.numberOfInputEmbeddings = numberOfInputEmbeddings;
         this.outputVectorSize = outputVectorSize;
-        this.dropoutRate = dropoutRate;
+
         initializeWeightsMatrix(inputEmbeddingSize, outputVectorSize);
     }
 
@@ -71,8 +67,9 @@ public class SelfAttention {
         double[][] normalizedAttentionWeights = applySoftmax(attentionScores);
         double[][] hideMask = generateHideMask(numberOfInputEmbeddings);
         double[][] normalizedWeightsAfterHideMask = applyHideMaskAndNormalizeWeights(normalizedAttentionWeights, hideMask);
-        double[][] dropoutMask = generateDropoutMask(numberOfInputEmbeddings, dropoutRate);
-        double[][] attentionWeightsAfterDropoutMask = applyDropoutMaskAndScaleWeights(normalizedWeightsAfterHideMask, dropoutMask, dropoutRate);
+        // не забыть что во время тренировки отсев включён, а во время обычного запроса выключен
+        double[][] dropoutMask = dropout.generateDropoutMask(numberOfInputEmbeddings);
+        double[][] attentionWeightsAfterDropoutMask = dropout.applyDropoutMaskAndScale(normalizedWeightsAfterHideMask, dropoutMask);
         contextVectors = calculateContextVectors(valueVectors, attentionWeightsAfterDropoutMask);
 
         return contextVectors;
@@ -233,55 +230,6 @@ public class SelfAttention {
             }
         }
         return hideMask;
-    }
-
-    /**
-     * Применяет маску отсева к матрице весов внимания, а так же увеличивает оставшиеся значения на величину:
-     * scaleCoefficient = 1 / (1 - dropoutRate); Отсеянные позиции принимают значение "0".
-     *
-     * @param attentionWeights матрица весов внимания
-     * @param dropoutMask      маска отсева
-     * @param dropoutRate      коэффициент отсева
-     * @return возвращает матрицу весов внимания с отсеянными значениями, остальные значения весов увеличены на
-     * коэффициент масштабирования
-     */
-    //можно не возвращать новый массив, изменять входящий
-    private double[][] applyDropoutMaskAndScaleWeights(double[][] attentionWeights, double[][] dropoutMask, double dropoutRate) {
-        double[][] weightsAfterDropoutAndScale = new double[attentionWeights.length][attentionWeights[0].length];
-        double scaleCoefficient = 1 / (1 - dropoutRate);
-        for (int i = 0; i < dropoutMask.length; i++) {
-            for (int j = 0; j < dropoutMask[i].length; j++) {
-                if (dropoutMask[i][j] == 0) {
-                    weightsAfterDropoutAndScale[i][j] = 0;
-                } else {
-                    weightsAfterDropoutAndScale[i][j] = attentionWeights[i][j] * scaleCoefficient;
-                }
-            }
-        }
-        return weightsAfterDropoutAndScale;
-    }
-
-    /**
-     * Генерирует маску отсева используемую для случайного отсева весов внимания
-     *
-     * @param numberOfInputEmbeddings размер входной последовательности векторов
-     * @param dropoutRate             коэффициент отсева
-     * @return маску отсева, где 0 - отсеиваемый позиция, 1 - позиция которая останется
-     */
-    private double[][] generateDropoutMask(int numberOfInputEmbeddings, double dropoutRate) {
-        double[][] dropoutMask = new double[numberOfInputEmbeddings][numberOfInputEmbeddings];
-        Random random = new Random();
-        for (int i = 0; i < dropoutMask.length; i++) {
-            for (int j = 0; j < dropoutMask[i].length; j++) {
-                double randomDouble = random.nextDouble();
-                if (randomDouble < dropoutRate) {
-                    dropoutMask[i][j] = 0;
-                } else {
-                    dropoutMask[i][j] = 1;
-                }
-            }
-        }
-        return dropoutMask;
     }
 
     /**

@@ -1,16 +1,16 @@
 package com.ehipte.neuralnetwork.core;
 
 import com.ehipte.neuralnetwork.activation.ActivationFunction;
-import com.ehipte.neuralnetwork.activation.SigmoidActivationFunction;
-import com.ehipte.neuralnetwork.weights.HeWeightsInitializer;
+import com.ehipte.neuralnetwork.activation.GeluActivationFunction;
 import com.ehipte.neuralnetwork.weights.WeightInitializer;
+import com.ehipte.neuralnetwork.weights.XavierWeightsInitializer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Neuron {
 
-    private WeightInitializer weightInitializer = new HeWeightsInitializer();
-    private ActivationFunction activationFunction = new SigmoidActivationFunction();
+    private WeightInitializer weightInitializer = new XavierWeightsInitializer();
+    private ActivationFunction activationFunction = new GeluActivationFunction();
     private double[] weight;
     private double error;
     private double outputSignal;

@@ -1,20 +1,19 @@
 package com.ehipte.neuralnetwork.core;
 
-public class NeuralLayer {
+public class LinearLayer {
 
     private Neuron[] neurons;
 
     private boolean isFirstLayer = false;
     private boolean isLastLayer = false;
 
-    public NeuralLayer(int neuronsCount, int inputSize) {
+    public LinearLayer(int neuronsCount, int inputSize) {
         this.neurons = new Neuron[neuronsCount];
         for (int i = 0; i < neuronsCount; i++) {
             neurons[i] = new Neuron(inputSize, neuronsCount);
         }
     }
 
-    // по книжной архитектуре
     public double[] propagationSignal(double[] inputSignals) {
         if (isFirstLayer) {
             return inputSignals;
@@ -28,7 +27,7 @@ public class NeuralLayer {
         return output;
     }
 
-    public double[] backpropagationError(double[] errors, NeuralLayer nextLayer) {
+    public double[] backpropagationError(double[] errors, LinearLayer nextLayer) {
         if (isLastLayer) {
             for (int i = 0; i < neurons.length; i++) {
                 neurons[i].setError(errors[i]);

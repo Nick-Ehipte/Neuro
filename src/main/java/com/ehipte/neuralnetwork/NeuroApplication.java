@@ -1,6 +1,6 @@
 package com.ehipte.neuralnetwork;
 
-import com.ehipte.neuralnetwork.core.NeuralNetwork;
+import com.ehipte.neuralnetwork.core.FeedForwardNetwork;
 import com.ehipte.neuralnetwork.training.TrainingDataService;
 
 import java.util.List;
@@ -12,7 +12,7 @@ public class NeuroApplication {
         TrainingDataService trainingDataService = new TrainingDataService();
         trainingDataService.initializeTrainingDataSetFromCsv("src/main/resources/data/mnist_train.csv");
 
-        NeuralNetwork network = NeuralNetwork.builder()
+        FeedForwardNetwork network = FeedForwardNetwork.builder()
                 .learningRate(0.1)
                 .inputLayer(784)
                 .hiddenLayer(500)
@@ -30,8 +30,14 @@ public class NeuroApplication {
         double[][] testData = trainingDataService.getTrainingData().toArray(double[][]::new);
         List<Integer> answers = trainingDataService.getCorrectIntAnswers();
         for (int i = 0; i < testData.length; i++) {
-            int result = network.query(testData[i]);
-            if (answers.get(i) == result) {
+            double[] result = network.forward(testData[i]);
+            int resultIndex = 0;
+            for (int j = 0; j < result.length; j++) {
+                if (result[i] > result[resultIndex]) {
+                    resultIndex = j;
+                }
+            }
+            if (answers.get(i) == result[resultIndex]) {
                 correct++;
             } else {
                 fail++;

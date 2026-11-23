@@ -10,7 +10,7 @@ public class MultiHeadAttention {
 
     private final List<SelfAttention> heads;
 
-    public MultiHeadAttention(Builder builder) {
+    private MultiHeadAttention(Builder builder) {
         this.heads = builder.heads;
     }
 
@@ -57,36 +57,57 @@ public class MultiHeadAttention {
     public static class Builder {
 
         private final List<SelfAttention> heads = new ArrayList<>();
+        private int inputVectorsCount;
+        private int inputVectorSize;
+        private double dropoutRate;
+        private int headsCount;
 
-        public MultiHeadAttention.Builder addHeads(int headsCount, int numberOfInputEmbeddings, int inputEmbeddingSize, double dropoutRate) {
-            if (headsCount < 2) {
-                throw new IllegalArgumentException("В многоцелевом механизме внимания должно быть минимум 2 цели.");
-            }
-            if (inputEmbeddingSize <= 0) {
-                throw new IllegalArgumentException("Размер входного вложения должен быть больше 0");
-            }
-            if (inputEmbeddingSize % headsCount != 0) {
-                throw new IllegalStateException("Невозможно нацело разделить входной вектор на количество целей.");
-            }
-            if (numberOfInputEmbeddings <= 0) {
-                throw new IllegalArgumentException("Количество входных вложений должно быть больше 0");
-            }
-            if (dropoutRate <= 0) {
-                throw new IllegalArgumentException("Коэффициент отсева должен быть больше 0");
-            }
-            for (int i = 0; i < headsCount; i++) {
-                SelfAttention head = new SelfAttention(
-                        numberOfInputEmbeddings,
-                        inputEmbeddingSize,
-                        inputEmbeddingSize / headsCount,
-                        dropoutRate
-                );
-                this.heads.add(head);
-            }
+
+        public Builder inputVectorsCount(int inputVectorsCount) {
+            this.inputVectorsCount = inputVectorsCount;
+            return this;
+        }
+
+        public Builder inputVectorSize(int inputVectorSize) {
+            this.inputVectorSize = inputVectorSize;
+            return this;
+        }
+
+        public Builder headsCount(int headsCount) {
+            this.headsCount = headsCount;
+            return this;
+        }
+
+        public Builder dropoutRate(double dropoutRate) {
+            this.dropoutRate = dropoutRate;
             return this;
         }
 
         public MultiHeadAttention build() {
+            if (headsCount < 2) {
+                throw new IllegalArgumentException("В многоцелевом механизме внимания должно быть минимум 2 цели.");
+            }
+            if (inputVectorSize <= 0) {
+                throw new IllegalArgumentException("Размер входного вложения должен быть больше 0");
+            }
+            if (inputVectorSize % headsCount != 0) {
+                throw new IllegalStateException("Невозможно нацело разделить входной вектор на количество целей.");
+            }
+            if (inputVectorsCount <= 0) {
+                throw new IllegalArgumentException("Количество входных вложений должно быть больше 0");
+            }
+            if (dropoutRate < 0) {
+                throw new IllegalArgumentException("Коэффициент отсева не может быть отрицательным числом.");
+            }
+            for (int i = 0; i < headsCount; i++) {
+                SelfAttention head = new SelfAttention(
+                        inputVectorsCount,
+                        inputVectorSize,
+                        inputVectorSize / headsCount,
+                        dropoutRate
+                );
+                this.heads.add(head);
+            }
             return new MultiHeadAttention(this);
         }
     }
